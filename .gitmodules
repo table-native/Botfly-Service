@@ -1,0 +1,3 @@
+[submodule "Botfly-Model"]
+	path = Botfly-Model
+	url = git@github.com:table-native/Botfly-Model.git
