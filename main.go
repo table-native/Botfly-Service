@@ -32,6 +32,7 @@ func main() {
 		)),
 	)
 	pb.RegisterUserServiceServer(s, &service.UserService{})
+	pb.RegisterGameServiceServer(s, &service.GameService{})
 
 	if err := s.Serve(lis); err != nil {
 		logger.Fatal("Failed to serve", zap.Error(err))
