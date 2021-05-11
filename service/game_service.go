@@ -38,7 +38,7 @@ func saveUserCode(userId string, code string) {
 
 	//delete current file
 	codeFile.Truncate(0)
-	err = userCodeTemplate.Execute(codeFile, code)
+	userCodeTemplate.Execute(codeFile, code)
 }
 
 func (g GameService) SaveMyBot(ctx context.Context, code *pb.BotTemplate) (*pb.SaveStatus, error) {
@@ -47,4 +47,15 @@ func (g GameService) SaveMyBot(ctx context.Context, code *pb.BotTemplate) (*pb.S
 
 	saveUserCode(userId, code.Template)
 	return &pb.SaveStatus{}, nil
+}
+
+func (g GameService) GetMyBot(ctx context.Context, _ *pb.EmptyRequest) (*pb.BotTemplate, error) {
+	userId := ctx.Value(auth.Claims("userId")).(string)
+	userCode, err := os.ReadFile(path.Join("data", userId, "ticTacToe.js"))
+
+	if err != nil {
+		// no code found
+		return &pb.BotTemplate{}, nil 
+	}
+	return &pb.BotTemplate{ Template: string(userCode) }, nil
 }
