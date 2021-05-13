@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: botfly-svc-deployment
+  labels:
+    app: botfly-svc
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: botfly-svc
+  template:
+    metadata:
+      labels:
+        app: botfly-svc
+    spec:
+      containers:
+      - name: botfly-svc
+        image: botflysvc.azurecr.io/botfly-service:latest
+        ports:
+        - containerPort: 8080
+          name: web
+        - containerPort: 50051
+          name: grpc

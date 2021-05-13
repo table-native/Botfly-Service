@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: botfly-service
+  labels:
+    app: web
+spec:
+  containers:
+    - name: botfly-svc-container
+      image: botflysvc.azurecr.io/botfly-service:latest
+      ports:
+        - containerPort: 8080
