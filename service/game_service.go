@@ -1,12 +1,12 @@
 package service
 
 import (
+	"bytes"
 	"context"
-	"os"
-	"path"
 	"text/template"
 
 	"github.com/table-native/Botfly-Service/auth"
+	"github.com/table-native/Botfly-Service/db"
 	"github.com/table-native/Botfly-Service/games"
 	pb "github.com/table-native/Botfly-Service/generated"
 	"github.com/table-native/Botfly-Service/logger"
@@ -15,6 +15,13 @@ import (
 
 type GameService struct {
 	pb.UnimplementedGameServiceServer
+	scriptsDto *db.ScriptsDto
+}
+
+func NewGameService(scriptsDto *db.ScriptsDto) *GameService {
+	return &GameService{
+		scriptsDto: scriptsDto,
+	}
 }
 
 func (g GameService) GetBotTemplate(ctx context.Context, gameDetails *pb.GameDetails) (*pb.BotTemplate, error) {
@@ -23,39 +30,34 @@ func (g GameService) GetBotTemplate(ctx context.Context, gameDetails *pb.GameDet
 	}, nil
 }
 
-func saveUserCode(userId string, code string) {
+func getUserCodeSubstitutingMain(code string) string {
 	userCodeTemplate := template.Must(
 		template.New("userCode").Parse(games.Tic_Tac_Toe_Driver_Code),
 	)
 
-	os.MkdirAll(path.Join("data", userId), os.ModePerm)
-	codeFile, err := os.Create(path.Join("data", userId, "ticTacToe.js"))
-	if err != nil {
-		logger.Fatal("Failed writing usercode file", zap.Error(err))
-		return
-	}
-	defer codeFile.Close()
-
-	//delete current file
-	codeFile.Truncate(0)
-	userCodeTemplate.Execute(codeFile, code)
+	var outputCode bytes.Buffer
+	userCodeTemplate.Execute(&outputCode, code)
+	return outputCode.String()
 }
 
 func (g GameService) SaveMyBot(ctx context.Context, code *pb.BotTemplate) (*pb.SaveStatus, error) {
 	userId := ctx.Value(auth.Claims("userId")).(string)
 	logger.Info("Saving bot for userId", zap.String("userId", userId))
 
-	saveUserCode(userId, code.Template)
+	srcCode := getUserCodeSubstitutingMain(code.Template)
+	scriptsModel := db.ScriptsModel{
+		UserId:       userId,
+		PlatformCode: srcCode,
+		UserCode:     code.Template,
+		Game:         "tic-tac-toe",
+	}
+
+	<-g.scriptsDto.Create(scriptsModel)
 	return &pb.SaveStatus{}, nil
 }
 
 func (g GameService) GetMyBot(ctx context.Context, _ *pb.EmptyRequest) (*pb.BotTemplate, error) {
 	userId := ctx.Value(auth.Claims("userId")).(string)
-	userCode, err := os.ReadFile(path.Join("data", userId, "ticTacToe.js"))
-
-	if err != nil {
-		// no code found
-		return &pb.BotTemplate{}, nil 
-	}
-	return &pb.BotTemplate{ Template: string(userCode) }, nil
+	scritpsModel := <-g.scriptsDto.FindByUserAndGame(userId, "tic-tac-toe")
+	return &pb.BotTemplate{Template: scritpsModel.UserCode}, nil
 }

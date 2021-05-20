@@ -14,6 +14,7 @@ import (
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 
 	"github.com/table-native/Botfly-Service/auth"
+	"github.com/table-native/Botfly-Service/db"
 	pb "github.com/table-native/Botfly-Service/generated"
 	"github.com/table-native/Botfly-Service/logger"
 	"github.com/table-native/Botfly-Service/service"
@@ -38,8 +39,13 @@ func StartGrpcServer() *grpc.Server {
 			grpc_auth.UnaryServerInterceptor(auth.VerifyToken()),
 		)),
 	)
-	pb.RegisterUserServiceServer(s, &service.UserService{})
-	pb.RegisterGameServiceServer(s, &service.GameService{})
+
+	botflyDb := db.NewBotflyDb()
+	userDto := db.NewUserDto(botflyDb)
+	scriptsDto := db.NewScriptsDto(botflyDb)
+
+	pb.RegisterUserServiceServer(s, service.NewUserService(userDto))
+	pb.RegisterGameServiceServer(s, service.NewGameService(scriptsDto))
 
 	go func() {
 		if err := s.Serve(lis); err != nil {
@@ -76,7 +82,7 @@ func main() {
 		logger.Fatal("Failed starting web server", zap.Error(err))
 	}
 	logger.Info("Starting web server at ", zap.String("port", webPort))
-	
+
 	if err := webServer.Serve(webListener); err != nil {
 		logger.Fatal("Failed to serve", zap.Error(err))
 	}

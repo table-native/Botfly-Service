@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"encoding/base64"
 
 	"github.com/dgrijalva/jwt-go"
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
@@ -45,7 +44,7 @@ func VerifyToken() grpc_auth.AuthFunc {
 func GetToken(userId string) string {
 	//TODO: This should be in an env file
 	atClaims := jwt.StandardClaims{}
-	atClaims.Id = base64.StdEncoding.EncodeToString([]byte(userId))
+	atClaims.Id = userId
 
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 	token, _ := at.SignedString([]byte(ACCESS_SECRET))

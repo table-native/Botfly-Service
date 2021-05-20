@@ -15,10 +15,15 @@ spec:
         app: botfly-svc
     spec:
       containers:
-      - name: botfly-svc
-        image: botflysvc.azurecr.io/botfly-service:latest
-        ports:
-        - containerPort: 8080
-          name: web
-        - containerPort: 50051
-          name: grpc
+        - name: botfly-svc
+          image: botflysvc.azurecr.io/botfly-service:latest
+          env:
+            - name: MONGO_CONN
+              valueFrom:
+                secretKeyRef:
+                  name: db-conn-string
+          ports:
+            - containerPort: 8080
+              name: web
+            - containerPort: 50051
+              name: grpc

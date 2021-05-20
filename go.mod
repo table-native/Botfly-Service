@@ -9,6 +9,7 @@ require (
 	github.com/improbable-eng/grpc-web v0.14.0
 	github.com/prometheus/client_golang v1.10.0
 	github.com/rs/cors v1.7.0 // indirect
+	go.mongodb.org/mongo-driver v1.5.2
 	go.uber.org/zap v1.13.0
 	golang.org/x/net v0.0.0-20201021035429-f5854403a974 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect

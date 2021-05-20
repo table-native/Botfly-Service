@@ -24,3 +24,7 @@ func Info(msg string, fields ...zap.Field) {
 func Fatal(msg string, fields ...zap.Field) {
 	Log.Fatal(msg, fields...)
 }
+
+func Error(msg string, fields ...zap.Field) {
+	Log.Error(msg, fields...)
+}
