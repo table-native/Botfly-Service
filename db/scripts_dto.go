@@ -40,6 +40,8 @@ func (s ScriptsDto) Create(scriptsModel ScriptsModel) chan ScriptsModel {
 		scriptsModel.Id = scriptsModel.GetId()
 
 		document, _ := bson.Marshal(scriptsModel)
+
+		s.collection.DeleteOne(context.Background(), bson.M{"_id": scriptsModel.Id})
 		_, err := s.collection.InsertOne(context.Background(), document)
 
 		if err != nil {
