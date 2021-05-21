@@ -22,6 +22,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: db-conn-string
+                  key: dbSecret
           ports:
             - containerPort: 8080
               name: web

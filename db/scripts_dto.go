@@ -52,8 +52,8 @@ func (s ScriptsDto) Create(scriptsModel ScriptsModel) chan ScriptsModel {
 	return ch
 }
 
-func (s ScriptsDto) FindByUserAndGame(userId string, game string) chan ScriptsModel {
-	ch := make(chan ScriptsModel)
+func (s ScriptsDto) FindByUserAndGame(userId string, game string) chan *ScriptsModel {
+	ch := make(chan *ScriptsModel)
 
 	go func() {
 		scriptsModel := ScriptsModel{UserId: userId, Game: game}
@@ -64,12 +64,13 @@ func (s ScriptsDto) FindByUserAndGame(userId string, game string) chan ScriptsMo
 
 		if scriptsBson.Err() != nil {
 			logger.Error("Got error fetching user script", zap.Error(scriptsBson.Err()))
+			ch <- nil
 		}
 
 		scripts := &ScriptsModel{}
 		scriptsBson.Decode(scripts)
 
-		ch <- *scripts
+		ch <- scripts
 	}()
 	return ch
 }

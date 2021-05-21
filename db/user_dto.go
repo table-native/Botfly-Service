@@ -50,13 +50,13 @@ func (u UserDto) Create(user UserModel) chan UserModel {
 	return ch
 }
 
-func (u UserDto) FindUserById(id string) chan UserModel {
-	ch := make(chan UserModel)
+func (u UserDto) FindUserById(id string) chan *UserModel {
+	ch := make(chan *UserModel)
 
 	go func() {
 		userBson := u.collection.FindOne(context.Background(), bson.M{"_id": id})
 
-		user := UserModel{}
+		user := &UserModel{}
 		userBson.Decode(user)
 		ch <- user
 	}()

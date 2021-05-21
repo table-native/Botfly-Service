@@ -24,12 +24,6 @@ func NewGameService(scriptsDto *db.ScriptsDto) *GameService {
 	}
 }
 
-func (g GameService) GetBotTemplate(ctx context.Context, gameDetails *pb.GameDetails) (*pb.BotTemplate, error) {
-	return &pb.BotTemplate{
-		Template: games.Tic_Tac_Toe_Template,
-	}, nil
-}
-
 func getUserCodeSubstitutingMain(code string) string {
 	userCodeTemplate := template.Must(
 		template.New("userCode").Parse(games.Tic_Tac_Toe_Driver_Code),
@@ -49,15 +43,24 @@ func (g GameService) SaveMyBot(ctx context.Context, code *pb.BotTemplate) (*pb.S
 		UserId:       userId,
 		PlatformCode: srcCode,
 		UserCode:     code.Template,
-		Game:         "tic-tac-toe",
+		Game:         code.GameType.String(),
 	}
 
 	<-g.scriptsDto.Create(scriptsModel)
 	return &pb.SaveStatus{}, nil
 }
 
-func (g GameService) GetMyBot(ctx context.Context, _ *pb.EmptyRequest) (*pb.BotTemplate, error) {
+func (g GameService) GetMyBot(ctx context.Context, game *pb.GameDetails) (*pb.BotTemplate, error) {
 	userId := ctx.Value(auth.Claims("userId")).(string)
-	scritpsModel := <-g.scriptsDto.FindByUserAndGame(userId, "tic-tac-toe")
-	return &pb.BotTemplate{Template: scritpsModel.UserCode}, nil
+	scritpsModel := <-g.scriptsDto.FindByUserAndGame(userId, game.GameType.String())
+
+	if scritpsModel != nil {
+		return &pb.BotTemplate{Template: scritpsModel.UserCode}, nil
+	} else {
+		return &pb.BotTemplate{Template: games.Tic_Tac_Toe_Template}, nil
+	}
+}
+
+func (g GameService) Play(context.Context, *pb.GameDetails) (*pb.MatchResult, error) {
+	return &pb.MatchResult{}, nil
 }
